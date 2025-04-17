@@ -7,6 +7,6 @@ class UsuarioSerializer(serializers.ModelSerializer):
         fields = '__all__'
     
     def validate_username(self, value):
-        if Usuario.objects.filter(username=value).exists():
-            raise serializers.ValidationError("Ese nombre de usuario ya se encuentra registrado")
+        if Usuario.objects.filter(correo=value).exists():
+            raise serializers.ValidationError("Ese correo de usuario ya se encuentra registrado")
         return value
