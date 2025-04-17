@@ -38,33 +38,33 @@ class PermisoRol(models.Model):
 # modelo: Usuario
 
 class UsuarioManager(BaseUserManager):
-    def create_user(self, username, correo, password=None):
-        if not username:
+    def create_user(self, nombre, correo, password=None):
+        if not nombre:
             raise ValueError("El usuario debe tener un nombre")
         if not correo:
             raise ValueError("El usuario debe tener un correo")
 
         user = self.model(
-            username=username,
+            nombre=nombre,
             correo=self.normalize_email(correo),
         )
         user.set_password(password)
         user.save(using=self._db)
         return user
     
-    def create_superuser(self, username, correo, password):
-        user = self.create_user(username,correo,password)
+    def create_superuser(self, nombre, correo, password):
+        user = self.create_user(nombre,correo,password)
         user.is_staff = True
         user.is_superuser = True
         user.save(using=self._db)
         return user
     
-    def get_by_natural_key(self, username):
-        return self.get(username=username)
+    def get_by_natural_key(self, correo):
+        return self.get(correo=correo)
 
 
 class Usuario(AbstractBaseUser):
-    username = models.CharField(max_length=50, unique=True)
+    nombre = models.CharField(max_length=50, unique=True)
     correo = models.EmailField(unique=True)
     apellidos = models.CharField(null=True, blank=True, max_length=100)
     rol = models.ForeignKey(Rol, on_delete=models.SET_NULL, null=True, blank=True)
@@ -74,11 +74,11 @@ class Usuario(AbstractBaseUser):
 
     objects = UsuarioManager()
 
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['correo']
+    USERNAME_FIELD = 'correo'
+    REQUIRED_FIELDS = ['username','apellidos']
 
     def __str__(self):
-        return self.username
+        return self.correo
     
 
 # Modelo: ActivityLogUsuario

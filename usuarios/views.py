@@ -18,7 +18,7 @@ def register(request):
     serializer = UsuarioSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        user = Usuario.objects.get(username=serializer.data['username'])
+        user = Usuario.objects.get(nombre=serializer.data['nombre'])
         user.password = make_password(serializer.data['password'])
         user.save();
         
@@ -30,7 +30,7 @@ def register(request):
 
 @api_view(['POST'])
 def login(request):
-    user = get_object_or_404(Usuario, username=request.data['username'])
+    user = get_object_or_404(Usuario, correo=request.data['correo'])
 
     if not user.check_password(request.data['password']):
         return Response({"error": "Contraseña invalida"}, status=status.HTTP_400_BAD_REQUEST)
@@ -45,5 +45,5 @@ def login(request):
 @permission_classes([IsAuthenticated])
 def perfil(request):
     print(request.user)
-    return Response("Estas logeado con {}".format(request.user.username),status=status.HTTP_200_OK)
+    return Response("Estas logeado con {}".format(request.user.nombre),status=status.HTTP_200_OK)
 
