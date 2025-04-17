@@ -35,11 +35,11 @@ class Usuario(AbstractBaseUser):
 
 
 
-    #objects = UsuarioManager()
+    objects = UsuarioManager()
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['correo']
 
-    def _str__(self):
+    def __str__(self):
         return self.username
     
