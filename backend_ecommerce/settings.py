@@ -82,13 +82,15 @@ WSGI_APPLICATION = 'backend_ecommerce.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        "NAME": "ecommerce_si2",
-        "USER": "ecommerce_si2_user",
-        "PASSWORD": "HRnoRnoC9zRiOqXTuMXnDLKaMLUGcHpV",
-        "HOST": "dpg-cvu7tevgi27c73afc7cg-a.oregon-postgres.render.com",
+        "NAME": "bdparcialsi2",
+        "USER": "bdparcialsi2_user",
+        "PASSWORD": "liDbfbkK7a4Y0GYVIFAEsdQtLQW1j8oV",
+        "HOST": "dpg-d00lvu49c44c73bbep80-a.virginia-postgres.render.com",
         "PORT": "5432"
     }
 }
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
