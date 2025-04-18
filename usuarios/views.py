@@ -38,7 +38,7 @@ def login(request):
     if not user.check_password(request.data['password']):
         return Response({"error": "Contraseña invalida"}, status=status.HTTP_400_BAD_REQUEST)
     user.last_login = timezone.now()
-    user.save
+    user.save()
     token, created = Token.objects.get_or_create(user=user)
     serializer = UsuarioSerializer(instance=user)
 
