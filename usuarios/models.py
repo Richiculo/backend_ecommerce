@@ -38,14 +38,16 @@ class PermisoRol(models.Model):
 # modelo: Usuario
 
 class UsuarioManager(BaseUserManager):
-    def create_user(self, nombre, correo, password=None):
+    def create_user(self, nombre, apellidos, correo, password=None):
         if not nombre:
             raise ValueError("El usuario debe tener un nombre")
         if not correo:
             raise ValueError("El usuario debe tener un correo")
-
+        if not apellidos:
+            raise ValueError("El usuario debe tener apellidos registrados")
         user = self.model(
             nombre=nombre,
+            apellidos=apellidos,
             correo=self.normalize_email(correo),
         )
         user.set_password(password)
@@ -64,7 +66,7 @@ class UsuarioManager(BaseUserManager):
 
 
 class Usuario(AbstractBaseUser):
-    nombre = models.CharField(max_length=50, unique=True)
+    nombre = models.CharField(max_length=50)
     correo = models.EmailField(unique=True)
     apellidos = models.CharField(null=True, blank=True, max_length=100)
     rol = models.ForeignKey(Rol, on_delete=models.SET_NULL, null=True, blank=True)
@@ -75,7 +77,7 @@ class Usuario(AbstractBaseUser):
     objects = UsuarioManager()
 
     USERNAME_FIELD = 'correo'
-    REQUIRED_FIELDS = ['username','apellidos']
+    REQUIRED_FIELDS = ['nombre','apellidos']
 
     def __str__(self):
         return self.correo
