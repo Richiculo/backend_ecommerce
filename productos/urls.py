@@ -8,6 +8,7 @@ router.register(r'proveedores',views.ProveedorViewSet)
 router.register(r'categorias',views.CategoriaViewSet)
 router.register(r'detalles',views.DetalleProductoViewSet)
 router.register(r'stocks',views.StockSucursalViewSet)
+router.register(r'imagenes-productos',views.ImagenProductoViewSet, basename = 'imagenes-productos')
 
 urlpatterns = [
     path('', include(router.urls))
