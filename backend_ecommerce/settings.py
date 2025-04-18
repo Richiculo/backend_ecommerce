@@ -143,6 +143,11 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173'
 ]
 
+<<<<<<< HEAD
 CORS_ALLOW_CREDENTIALS = True
 
+=======
+# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+>>>>>>> origin/main
 AUTH_USER_MODEL = 'usuarios.Usuario'
