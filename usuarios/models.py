@@ -65,7 +65,7 @@ class UsuarioManager(BaseUserManager):
         return self.get(correo=correo)
 
 
-class Usuario(AbstractBaseUser):
+class Usuario(AbstractBaseUser, PermissionsMixin):
     nombre = models.CharField(max_length=50)
     correo = models.EmailField(unique=True)
     apellidos = models.CharField(null=True, blank=True, max_length=100)
