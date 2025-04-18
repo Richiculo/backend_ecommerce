@@ -58,6 +58,7 @@ class UsuarioManager(BaseUserManager):
         user = self.create_user(nombre, apellidos, correo, password)
         user.is_staff = True
         user.is_superuser = True
+        user.rol = Rol.objects.get(id=1)
         user.save(using=self._db)
         return user
     
