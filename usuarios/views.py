@@ -8,7 +8,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from .models import Usuario
+from .models import Usuario, Rol
+from django.utils import timezone
 
 
 
@@ -18,7 +19,9 @@ def register(request):
     serializer = UsuarioSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        user = Usuario.objects.get(nombre=serializer.data['nombre'])
+        rol_cliente = Rol.objects.get(pk=2)
+        user = serializer.save(rol=rol_cliente)
+        user = Usuario.objects.get(correo=serializer.data['correo'])
         user.password = make_password(serializer.data['password'])
         user.save();
         
@@ -34,7 +37,8 @@ def login(request):
 
     if not user.check_password(request.data['password']):
         return Response({"error": "Contraseña invalida"}, status=status.HTTP_400_BAD_REQUEST)
-    
+    user.last_login = timezone.now()
+    user.save
     token, created = Token.objects.get_or_create(user=user)
     serializer = UsuarioSerializer(instance=user)
 
