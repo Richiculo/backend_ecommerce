@@ -18,11 +18,11 @@ from django.utils import timezone
 def register(request):
     serializer = UsuarioSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
+        user = serializer.save()
+
         rol_cliente = Rol.objects.get(pk=2)
         user = serializer.save(rol=rol_cliente)
         user = Usuario.objects.get(correo=serializer.data['correo'])
-        user.password = make_password(serializer.data['password'])
         user.save();
         
         token = Token.objects.create(user=user)
@@ -50,4 +50,15 @@ def login(request):
 def perfil(request):
     print(request.user)
     return Response("Estas logeado con {}".format(request.user.nombre),status=status.HTTP_200_OK)
+
+@api_view(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def actualizar_usuario(request):
+    user = request.user
+    serializer = UsuarioSerializer(user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Usuario actualizado", "usuario": serializer.data})
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

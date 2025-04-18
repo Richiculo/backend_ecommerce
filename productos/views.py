@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Producto, Proveedor, Detalle_Producto, Categoria, Stock_sucursal
-from .serializers import ProductoSerializer, ProveedorSerializer, DetalleProductoSerializer, CategoriaSerializer, StockSucursalSerializer
+from .models import Producto, Proveedor, Detalle_Producto, Categoria, Stock_sucursal, Imagen_Producto
+from .serializers import ProductoSerializer, ProveedorSerializer, DetalleProductoSerializer, CategoriaSerializer, StockSucursalSerializer, ImagenProductoSerializer
 
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
@@ -23,3 +23,6 @@ class StockSucursalViewSet(viewsets.ModelViewSet):
     queryset = Stock_sucursal.objects.all()
     serializer_class = StockSucursalSerializer
 
+class ImagenProductoViewSet(viewsets.ModelViewSet):
+    queryset = Imagen_Producto.objects.all()
+    serializer_class = ImagenProductoSerializer
