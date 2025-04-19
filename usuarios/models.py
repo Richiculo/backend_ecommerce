@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 
 from django.utils import timezone
 from django.db import models
+from direcciones.models import Direccion
 
 
 # Modelo: Rol
@@ -71,7 +72,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     correo = models.EmailField(unique=True)
     apellidos = models.CharField(null=True, blank=True, max_length=100)
     rol = models.ForeignKey(Rol, on_delete=models.SET_NULL, null=True, blank=True)
-
+    direccion = models.OneToOneField(Direccion, on_delete=models.SET_NULL, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
