@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from .serializers import UsuarioSerializer
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.hashers import make_password
-from rest_framework import status
+from rest_framework import status, viewsets
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -11,6 +11,10 @@ from rest_framework.authentication import TokenAuthentication
 from .models import Usuario, Rol
 from django.utils import timezone
 
+
+class UsuarioViewSet(viewsets.ModelViewSet):
+    queryset = Usuario.objects.all()
+    serializer_class = UsuarioSerializer
 
 
 # Create your views here.
