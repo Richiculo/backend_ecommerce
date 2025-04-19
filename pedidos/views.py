@@ -2,19 +2,58 @@ from django.shortcuts import render
 from rest_framework import viewsets, status
 from .models import Cart, ItemCart, Metodo_Pago, Pago, Detalle_Venta, Venta
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
 from productos.models import Stock_sucursal
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from .serializers import CartSerializer, ItemCartSerializer, MetodoPagoSerializer, PagoSerializer, DetalleVentaSerializer, VentaSerializer
 
 class CartViewSet(viewsets.ModelViewSet):
-    queryset = Cart.objects.all()
-    serializer_class = CartSerializer
+    """
+    - Solo usuarios autenticados pueden acceder.
+    - Staff ve todos los carritos; clientes solo el suyo.
+    - Al crear un carrito, se asocia al usuario que hace la petición.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes     = [IsAuthenticated]
+    serializer_class       = CartSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Cart.objects.all()
+        return Cart.objects.filter(usuario=user)
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
 
 
 class ItemCartViewSet(viewsets.ModelViewSet):
-    queryset = ItemCart.objects.all()
-    serializer_class = ItemCartSerializer
+    """
+    - Solo usuarios autenticados pueden acceder.
+    - Staff ve todos los ítems; clientes solo los de su carrito.
+    - Al crear un ítem, se asocia al carrito activo del usuario.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes     = [IsAuthenticated]
+    serializer_class       = ItemCartSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return ItemCart.objects.all()
+        # Solo los ítems cuyo cart pertenece al usuario
+        return ItemCart.objects.filter(cart__usuario=user)
+
+    def perform_create(self, serializer):
+        # Busca (o crea) el carrito activo del usuario
+        cart, _ = Cart.objects.get_or_create(usuario=self.request.user, estado='activo')
+        serializer.save(cart=cart)
+
+
+
 
 class MetodoPagoViewSet(viewsets.ModelViewSet):
     queryset = Metodo_Pago.objects.all()
@@ -34,10 +73,13 @@ class VentaViewSet(viewsets.ModelViewSet):
     queryset = Venta.objects.all()
     serializer_class = VentaSerializer
 
+    authentication_classes = [TokenAuthentication]
+    permission_classes     = [IsAuthenticated] 
+
     def get_queryset(self):
         user = self.request.user
         if user.rol.nombre.lower() == 'cliente':
-            return Venta.objets.filter(usuario=user)
+            return Venta.objects.filter(usuario=user)
         return Venta.objects.all()
 
     def create(self, request, *args, **kwargs):
@@ -70,7 +112,7 @@ class VentaViewSet(viewsets.ModelViewSet):
             metodo_id=request.data.get('metodo_pago_id'),
             monto=total,
             estado='pendiente',
-            referecia=request.data.get('referencia','')
+            referencia=request.data.get('referencia','')
         )
 
         venta = Venta.objects.create(
