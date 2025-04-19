@@ -86,7 +86,6 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     
 
 # Modelo: ActivityLogUsuario
-
 class ActivitylogUsuario(models.Model):
     id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     accion = models.CharField(max_length=255)
