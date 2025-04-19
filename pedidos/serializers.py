@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import Cart, ItemCart, Metodo_Pago, Pago, Detalle_Venta, Venta
 
-
 class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
