@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status
 from .models import Cart, ItemCart, Metodo_Pago, Pago, Detalle_Venta, Venta
+from productos.models import Producto
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from productos.models import Stock_sucursal
@@ -9,6 +10,10 @@ from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .serializers import CartSerializer, ItemCartSerializer, MetodoPagoSerializer, PagoSerializer, DetalleVentaSerializer, VentaSerializer
+from productos.serializers import ProductoSerializer
+from rest_framework.decorators import action
+from pedidos.ml.recomendador import recomendar
+
 
 class CartViewSet(viewsets.ModelViewSet):
     """
@@ -39,6 +44,22 @@ class ItemCartViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes     = [IsAuthenticated]
     serializer_class       = ItemCartSerializer
+    
+    @action(detail=False, methods=['GET'], url_path='recomendaciones')
+    def recomendaciones(self, request):
+        user = request.user
+        try:
+            cart = Cart.objects.get(usuario=user, estado='activo')
+        except Cart.DoesNotExist:
+            return Response({"error: No se encontró un carrito activo"})
+        
+        productos_en_carrito = cart.items.values_list('producto_id', flat=True)
+        recomendaciones_ids = recomendar(list(productos_en_carrito))
+
+        productos_recomendados = Producto.objects.filter(id__in=recomendaciones_ids)
+        serializer = ProductoSerializer(productos_recomendados, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get_queryset(self):
         user = self.request.user
