@@ -11,6 +11,7 @@ class ItemCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = ItemCart
         fields = '__all__'
+        read_only_fields = ['precio_unitario']
 
 
 class MetodoPagoSerializer(serializers.ModelSerializer):
