@@ -11,6 +11,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .serializers import CartSerializer, ItemCartSerializer, MetodoPagoSerializer, PagoSerializer, DetalleVentaSerializer, VentaSerializer
 from productos.serializers import ProductoSerializer
+from rest_framework import serializers
 from rest_framework.decorators import action
 from pedidos.ml.recomendador import recomendar
 
@@ -69,10 +70,26 @@ class ItemCartViewSet(viewsets.ModelViewSet):
         return ItemCart.objects.filter(cart__usuario=user)
 
     def perform_create(self, serializer):
-        # Busca (o crea) el carrito activo del usuario
-        cart, _ = Cart.objects.get_or_create(usuario=self.request.user, estado='activo')
-        serializer.save(cart=cart)
-
+        user = self.request.user
+        cart, _ = Cart.objects.get_or_create(usuario=user, estado='activo')
+        
+        producto = serializer.validated_data['producto']
+        detalle = getattr(producto, 'detalle', None)
+        if not detalle:
+            raise serializers.ValidationError("el producto no tiene detalle asignado")
+        precio = detalle.precio_final
+        serializer.save(cart=cart, precio_unitario=precio)
+    
+    def perform_update(self, serializer):
+        producto = serializer.validated_data.get('producto')
+        if producto:
+            detalle = getattr(producto, 'detalle', None)
+            if not detalle:
+                raise serializers.ValidationError("El producto no tiene detalle asignado.")
+            precio = detalle.precio_final
+            serializer.save(precio_unitario=precio)
+        else:
+            serializer.save()
 
 
 
@@ -99,9 +116,9 @@ class VentaViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.rol.nombre.lower() == 'cliente':
-            return Venta.objects.filter(usuario=user)
-        return Venta.objects.all()
+        if user.is_staff:
+            return Venta.objects.all()
+        return Venta.objects.filter(usuario=user)
 
     def create(self, request, *args, **kwargs):
         usuario = request.user
@@ -124,8 +141,9 @@ class VentaViewSet(viewsets.ModelViewSet):
             except ObjectDoesNotExist:
                 return Response({'error': f'El producto {item.producto.nombre} no está disponible en la sucursal seleccionada.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if item.cantidad > stock_sucursal.stock:
-            return Response({'error': f"No hay suficiente stock para el producto {item.producto.nombre} en la sucursal seleccionada."}, status=status.HTTP_400_BAD_REQUEST)
+            if item.cantidad > stock_sucursal.stock:
+                return Response({'error': f"No hay suficiente stock para el producto {item.producto.nombre} en la sucursal seleccionada."}, status=status.HTTP_400_BAD_REQUEST)
+
         
         total = sum(item.precio_unitario * item.cantidad for item in items)
 
@@ -156,8 +174,6 @@ class VentaViewSet(viewsets.ModelViewSet):
         
         carrito.estado = 'confirmado'
         carrito.save()
-
-    
 
         serializer = self.get_serializer(venta)
         return Response({'mensaje':'Venta registrada con éxito', 'venta': serializer.data}, status=status.HTTP_201_CREATED)
