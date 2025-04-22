@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'pedidos',
     'direcciones',
     'notificaciones',
+    'envios',
 ]
 
 MIDDLEWARE = [
