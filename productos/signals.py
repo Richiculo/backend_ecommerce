@@ -18,7 +18,8 @@ Usuario = get_user_model()
 
 def verificar_stock_bajo(sender, instance, **kwargs):
     producto = instance.producto
-    if instance.cantidad < producto.stock_minimo:
+    STOCK_MINIMO_GLOBAL = 5
+    if instance.cantidad < STOCK_MINIMO_GLOBAL:
         admins = Usuario.objects.filter(is_superuser=True)
         for admin in admins:
             Notificacion.objects.create(
