@@ -5,6 +5,8 @@ from productos.models import Producto
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from productos.models import Stock_sucursal
+from direcciones.models import Direccion
+from envios.models import Envio
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
@@ -123,8 +125,18 @@ class VentaViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         usuario = request.user
         sucursal_id = request.data.get('sucursal_id')
+        es_delivery = request.data.get('es_delivery', False)
+        direccion_id = request.data.get('direccion_id')
         if not sucursal_id:
             return Response({'error': 'Debe indicar una sucursal para la venta.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if es_delivery:
+            if not direccion_id:
+                return Response({'error': 'Debe proporcionar una dirección para el envio.'}, status=status.HTTP_400_BAD_REQUEST)
+            try: 
+                direccion = Direccion.objects.get(id=direccion_id, usuario=usuario)
+            except Direccion.DoesNotExist:
+                return Response({'error': 'La dirección proporcionada no existe o no pertenece al usuario'})
 
         try:
             carrito = Cart.objects.get(usuario=usuario, estado='activo')
@@ -174,6 +186,16 @@ class VentaViewSet(viewsets.ModelViewSet):
         
         carrito.estado = 'confirmado'
         carrito.save()
+
+        if es_delivery:
+            direccion = Direccion.objects.get(id=direccion_id, usuario=usuario)
+            Envio.objects.create(
+                venta=venta,
+                cliente=usuario,
+                direccion_entrega=direccion,
+                estado='pendiente',
+                observaciones='Pedido en preparación'
+            )
 
         serializer = self.get_serializer(venta)
         return Response({'mensaje':'Venta registrada con éxito', 'venta': serializer.data}, status=status.HTTP_201_CREATED)

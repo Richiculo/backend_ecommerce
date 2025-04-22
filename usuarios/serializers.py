@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from .models import Usuario, ActivitylogUsuario
+from direcciones.models import Direccion
 from direcciones.serializers import DireccionSerializer
 
 class ActivitylogUsuarioSerializer(serializers.ModelSerializer):
@@ -39,6 +40,13 @@ class UsuarioSerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
+        direccion_data = self.initial_data.get('direccion_id')
+        if direccion_data:
+            try:
+                direccion = Direccion.objects.get(pk=direccion_data)
+                instance.direccion = direccion
+            except Direccion.DoesNotExist:
+                raise serializers.ValidationError({"direccion_id": "La dirección especificada no existe."})
         if password:
             instance.password = make_password(password)
         return super().update(instance, validated_data)
