@@ -26,6 +26,7 @@ urlpatterns = [
     path('sucursales/', include('sucursales.urls')),
     path('pedidos/', include('pedidos.urls')),
     path('', include('direcciones.urls')),
+    path('', include('notificaciones.urls'))
 ]
 
 if settings.DEBUG:
