@@ -13,7 +13,7 @@ from .serializers import CartSerializer, ItemCartSerializer, MetodoPagoSerialize
 from productos.serializers import ProductoSerializer
 from rest_framework import serializers
 from rest_framework.decorators import action
-from pedidos.ml.recomendador import recomendar
+from pedidos.ml.recomendador_knn import recomendar
 
 
 class CartViewSet(viewsets.ModelViewSet):
@@ -54,8 +54,8 @@ class ItemCartViewSet(viewsets.ModelViewSet):
         except Cart.DoesNotExist:
             return Response({"error: No se encontró un carrito activo"})
         
-        productos_en_carrito = cart.items.values_list('producto_id', flat=True)
-        recomendaciones_ids = recomendar(list(productos_en_carrito))
+        productos_en_carrito = list(cart.items.values_list('producto_id', flat=True))
+        recomendaciones_ids = recomendar(productos_en_carrito)
 
         productos_recomendados = Producto.objects.filter(id__in=recomendaciones_ids)
         serializer = ProductoSerializer(productos_recomendados, many=True)
