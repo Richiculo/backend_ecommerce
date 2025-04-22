@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'productos',
     'pedidos',
     'direcciones',
+    'notificaciones',
 ]
 
 MIDDLEWARE = [
