@@ -52,8 +52,13 @@ def login(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def perfil(request):
-    print(request.user)
-    return Response("Estas logeado con {}".format(request.user.nombre),status=status.HTTP_200_OK)
+    user = request.user
+    payload = {
+        'nombre': user.nombre,
+        'apellidos': user.apellidos,
+        'correo': user.correo,
+    }
+    return Response(payload, status=status.HTTP_200_OK)
 
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])

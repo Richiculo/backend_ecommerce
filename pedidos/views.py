@@ -30,6 +30,11 @@ class CartViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        usuario_id = user.id
+
+        if usuario_id and user.is_staff:
+            return Cart.objects.filter(usuario_id=usuario_id)
+
         if user.is_staff:
             return Cart.objects.all()
         return Cart.objects.filter(usuario=user)
@@ -66,9 +71,11 @@ class ItemCartViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        cart_id = self.request.query_params.get('cart_id', None)
+        if cart_id:
+            return ItemCart.objects.filter(cart_id=cart_id)
         if user.is_staff:
             return ItemCart.objects.all()
-        # Solo los ítems cuyo cart pertenece al usuario
         return ItemCart.objects.filter(cart__usuario=user)
 
     def perform_create(self, serializer):
