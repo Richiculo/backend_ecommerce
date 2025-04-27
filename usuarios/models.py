@@ -84,6 +84,9 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.correo
     
+    def get_full_name(self):
+        return f"{self.nombre} {self.apellidos}".strip()
+    
 
 # Modelo: ActivityLogUsuario
 class ActivitylogUsuario(models.Model):

@@ -85,13 +85,25 @@ WSGI_APPLICATION = 'backend_ecommerce.wsgi.application'
 
 
 # CONEXION A LA BASE DE DATOS
-DATABASES = {
+""" DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         "NAME": "bdparcialsi2",
         "USER": "bdparcialsi2_user",
         "PASSWORD": "liDbfbkK7a4Y0GYVIFAEsdQtLQW1j8oV",
         "HOST": "dpg-d00lvu49c44c73bbep80-a.virginia-postgres.render.com",
+        "PORT": "5432"
+    }
+} """
+
+# CONEXION AL SERVICIO RDS DE AWS PRIMOOO
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        "NAME": "ecommerce",
+        "USER": "postgres",
+        "PASSWORD": "BRUNO6464",
+        "HOST": "ecommerce-si2.c1gcgqmkyd8a.sa-east-1.rds.amazonaws.com",
         "PORT": "5432"
     }
 }
