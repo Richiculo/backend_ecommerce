@@ -75,9 +75,7 @@ class Detalle_Producto(models.Model):
 
 
     def __str__(self):
-        if self.producto:
-            return f"{self.producto.nombre} - {self.marca}"
-        return f"Sin producto asignado - {self.marca}"
+        return f"{self.producto.nombre} - {self.marca}"
     
 
 # Modelo: Categoria_Producto
