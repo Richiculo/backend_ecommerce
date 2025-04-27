@@ -18,6 +18,7 @@ class ItemCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = ItemCart
         fields = '__all__'
+        read_only_fields = ['cart', 'precio_unitario']
 
 
 class MetodoPagoSerializer(serializers.ModelSerializer):
@@ -44,3 +45,7 @@ class VentaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Venta
         fields = ['id', 'fecha', 'total', 'estado', 'pago', 'nombre']  # Incluye 'nombre' y excluye 'usuario'
+class VentaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Venta
+        fields = '__all__'
