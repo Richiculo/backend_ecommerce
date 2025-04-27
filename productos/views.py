@@ -6,6 +6,7 @@ from .serializers import ProductoSerializer, ProveedorSerializer, DetalleProduct
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+
 #IMPORTS PARA REPORTES
 from rest_framework.views import APIView
 from django.http import FileResponse, HttpResponse
@@ -22,23 +23,13 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 
-""" class GenerarReportePDF(APIView):
+
+class GenerarStockPDF(APIView):
     def get(self, request):
-        # 1. Obtener y validar parámetros
-        fecha_inicio = request.query_params.get('fecha_inicio', '').strip('"')
-        fecha_fin = request.query_params.get('fecha_fin', '').strip('"')
-        monto_minimo = request.query_params.get('monto_minimo', 0)
-        estado = request.query_params.get('estado', '').lower()
+        # Obtener todos los registros de stock
+        stocks = Stock_sucursal.objects.all().select_related('producto', 'sucursal', 'sucursal__direccion')
         
-        # 2. Filtrar ventas
-        ventas = Venta.objects.all()
-        if fecha_inicio and fecha_fin:
-            ventas = ventas.filter(fecha__date__range=[fecha_inicio, fecha_fin])
-        if estado:
-            ventas = ventas.filter(estado=estado)
-        ventas = ventas.filter(total__gte=float(monto_minimo))
-        
-        # 3. Configuración del documento
+        # Configuración del documento PDF
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter, 
                               rightMargin=72, leftMargin=72,
@@ -46,7 +37,7 @@ from reportlab.lib.units import inch
         
         styles = getSampleStyleSheet()
         
-        # Modificar estilos existentes en lugar de añadir nuevos
+        # Modificar estilos existentes
         styles['Heading1'].fontSize = 16
         styles['Heading1'].leading = 20
         styles['Heading1'].alignment = 1  # Centrado
@@ -57,50 +48,29 @@ from reportlab.lib.units import inch
         styles['BodyText'].spaceAfter = 6
         styles['BodyText'].textColor = colors.HexColor('#34495e')
         
-        # Contenido del PDF (resto del código permanece igual)
+        # Contenido del PDF
         elements = []
         
         # Encabezado
-        elements.append(Paragraph("Reporte de Ventas", styles['Heading1']))
-        elements.append(Paragraph(f"Total de ventas: {len(ventas)}", styles['Heading2']))
+        elements.append(Paragraph("Reporte de Stock por Sucursal", styles['Heading1']))
+        elements.append(Paragraph(f"Total de registros: {stocks.count()}", styles['Heading2']))
         
-        # Filtros aplicados
-        filtros_data = [
-            ["Fecha inicio:", fecha_inicio or "Todos"],
-            ["Fecha fin:", fecha_fin or "Todos"],
-            ["Monto mínimo:", f"${float(monto_minimo):,.2f}"],
-            ["Estado:", estado.capitalize() if estado else "Todos"]
-        ]
+        # Datos de stock
+        stock_data = [["ID", "Producto", "Sucursal", "Departamento", "Stock"]]
         
-        filtros_table = Table(filtros_data, colWidths=[1.5*inch, 3*inch])
-        filtros_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498db')),
-            ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#2c3e50')),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#ecf0f1')),
-            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#bdc3c7'))
-        ]))
-        elements.append(filtros_table)
-        elements.append(Paragraph(" ", styles['BodyText']))  # Espacio
-        
-        # Datos de ventas
-        ventas_data = [["ID", "Fecha", "Cliente", "Total", "Estado"]]
-        
-        for venta in ventas:
-            ventas_data.append([
-                str(venta.id),
-                venta.fecha.strftime('%Y-%m-%d'),
-                venta.usuario.nombre,
-                f"${float(venta.total):,.2f}",
-                venta.estado.capitalize()
+        for stock in stocks:
+            departamento = stock.sucursal.direccion.departamento.nombre if stock.sucursal.direccion and stock.sucursal.direccion.departamento else "N/A"
+            stock_data.append([
+                str(stock.id),
+                stock.producto.nombre,
+                stock.sucursal.nombre,
+                departamento,
+                str(stock.stock)
             ])
         
-        ventas_table = Table(ventas_data, repeatRows=1)
-        ventas_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
+        stock_table = Table(stock_data, repeatRows=1)
+        stock_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498db')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -113,64 +83,14 @@ from reportlab.lib.units import inch
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.HexColor('#f9f9f9'), colors.white])
         ]))
-        elements.append(ventas_table)
-        
+        elements.append(stock_table)
         
         
         # Generar PDF
         doc.build(elements)
         buffer.seek(0)
         
-        return FileResponse(buffer, filename="reporte_ventas.pdf", content_type='application/pdf')
-
-
-
-class GenerarReporteExcel(APIView):
-    def get(self, request):
-        # Obtener y limpiar parámetros (igual que en la vista PDF)
-        fecha_inicio = request.query_params.get('fecha_inicio', '').strip('"')
-        fecha_fin = request.query_params.get('fecha_fin', '').strip('"')
-        estado = request.query_params.get('estado', '').lower()
-        monto_minimo = float(request.query_params.get('monto_minimo', 0))
-
-        # Filtrar ventas (usando la misma lógica que para PDF)
-        ventas = Venta.objects.all()
-        if fecha_inicio and fecha_fin:
-            ventas = ventas.filter(fecha__date__range=[fecha_inicio, fecha_fin])
-        if estado:
-            ventas = ventas.filter(estado=estado)
-        ventas = ventas.filter(total__gte=monto_minimo)
-
-        # Convertir QuerySet a DataFrame de pandas
-        data = []
-        for venta in ventas:
-            data.append({
-                'ID': venta.id,
-                'Fecha': venta.fecha.strftime('%Y-%m-%d'),
-                'Cliente': venta.usuario.nombre,
-                'Total': float(venta.total),
-                'Estado': venta.estado,
-                'Método Pago': venta.pago.metodo.nombre if venta.pago else ''
-            })
-
-        df = pd.DataFrame(data)
-
-        # Crear archivo Excel en memoria
-        output = BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, sheet_name='Ventas', index=False)
-        
-        output.seek(0)
-
-        # Preparar respuesta
-        response = HttpResponse(
-            output.getvalue(),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = f'attachment; filename=reporte_ventas.xlsx'
-        return response
- """
-
+        return FileResponse(buffer, filename="reporte_stock_sucursal.pdf", content_type='application/pdf')
 
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
