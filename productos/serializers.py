@@ -28,7 +28,7 @@ class ProductoSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'nombre', 'descripcion', 'proveedor',
             'descuento', 'imagenes', 'stock_total',
-            'detalle', 'categorias'
+            'detalle', 'categorias', 'esta_disponible',
         ]
 
     def get_descuento(self, obj):
