@@ -3,13 +3,16 @@ from rest_framework import viewsets, status
 from .models import Cart, ItemCart, Metodo_Pago, Pago, Detalle_Venta, Venta
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from productos.models import Stock_sucursal
+from productos.models import Stock_sucursal, Producto
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework.decorators import action
 from .serializers import CartSerializer, ItemCartSerializer, MetodoPagoSerializer, PagoSerializer, DetalleVentaSerializer, VentaSerializer
 from productos.serializers import ProductoSerializer
+from ml.recomendador_knn import recomendar
+
+
 
 #IMPORTS PARA REPORTES
 from rest_framework.views import APIView
