@@ -9,6 +9,7 @@ class SucursalSerializer(serializers.ModelSerializer):
         model = Sucursal
         fields = ['id', 'nombre', 'telefono', 'departamento']  # Incluye el campo 'departamento'
 
+
     def get_departamento(self, obj):
         # Verifica si la sucursal tiene una dirección asociada y si esa dirección tiene un departamento
         if obj.direccion and obj.direccion.departamento:
