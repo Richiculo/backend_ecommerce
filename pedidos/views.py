@@ -2,10 +2,14 @@ from django.shortcuts import render
 from rest_framework import viewsets, status
 from .models import Cart, ItemCart, Metodo_Pago, Pago, Detalle_Venta, Venta
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
 from productos.models import Stock_sucursal
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
+from rest_framework import serializers
+from rest_framework.decorators import action
 from .serializers import CartSerializer, ItemCartSerializer, MetodoPagoSerializer, PagoSerializer, DetalleVentaSerializer, VentaSerializer
+from productos.serializers import ProductoSerializer
 
 #IMPORTS PARA REPORTES
 from rest_framework.views import APIView
@@ -174,7 +178,6 @@ class GenerarReporteExcel(APIView):
 
 
 class CartViewSet(viewsets.ModelViewSet):
-<<<<<<< HEAD
     """
     - Solo usuarios autenticados pueden acceder.
     - Staff ve todos los carritos; clientes solo el suyo.
@@ -257,7 +260,6 @@ class ItemCartViewSet(viewsets.ModelViewSet):
             serializer.save()
 
 
-=======
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
@@ -265,7 +267,6 @@ class ItemCartViewSet(viewsets.ModelViewSet):
 class ItemCartViewSet(viewsets.ModelViewSet):
     queryset = ItemCart.objects.all()
     serializer_class = ItemCartSerializer
->>>>>>> Bulacia
 
 class MetodoPagoViewSet(viewsets.ModelViewSet):
     queryset = Metodo_Pago.objects.all()
