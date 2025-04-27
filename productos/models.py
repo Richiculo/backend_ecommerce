@@ -42,7 +42,7 @@ class Producto(models.Model):
         self.save()
 
     def __str__(self):
-        return self.nombre
+        return self.nombreS
 
 
 #Modelo: Imagenes de un producto

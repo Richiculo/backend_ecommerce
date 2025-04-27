@@ -57,6 +57,7 @@ def perfil(request):
         'nombre': user.nombre,
         'apellidos': user.apellidos,
         'correo': user.correo,
+        'direccion': user.direccion_id
     }
     return Response(payload, status=status.HTTP_200_OK)
 
