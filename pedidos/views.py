@@ -16,6 +16,9 @@ from productos.serializers import ProductoSerializer
 from rest_framework import serializers
 from rest_framework.decorators import action
 from pedidos.ml.recomendador_knn import recomendar
+from django.utils import timezone
+import stripe
+from django.conf import settings
 
 
 class CartViewSet(viewsets.ModelViewSet):
@@ -110,6 +113,59 @@ class MetodoPagoViewSet(viewsets.ModelViewSet):
 class PagoViewSet(viewsets.ModelViewSet):
     queryset = Pago.objects.all()
     serializer_class = PagoSerializer
+
+    @action(detail=True, methods=['POST'])
+    def confirmar_pago(self, request, pk=None):
+        try:
+            pago = self.get_object()
+            if pago.estado != 'pendiente':
+                return Response({"error": "Este pago ya fue procesado"}, status=status.HTTP_400_BAD_REQUEST)
+            metodo_id = request.data.get('metodo_id')
+            referencia = request.data.get('referencia', 'PagoSimulado')
+            if metodo_id:
+                metodo = Metodo_Pago.objects.get(id=metodo_id)
+                pago.metodo = metodo
+            pago.referencia = referencia
+            pago.save()
+
+            venta = Venta.objects.get(pago=pago)
+            venta.estado = 'procesando'
+            venta.save()
+
+            try:
+                envio = Envio.objects.get(venta=venta)
+                envio.estado = 'enviado'
+                envio.fecha_envio = timezone.now()
+                envio.observaciones = 'En camino'
+                envio.save()
+            except Envio.DoesNotExist:
+                pass
+            return Response({"mensaje": "Pago confirmado y procesando venta"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    @action(detail=False, methods=['POST'], url_path='crear-intencion-pago')
+    def create_payment_intent(self, request):
+        try:
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+
+            amount = request.data.get('amount')  # Monto en centavos
+            currency = request.data.get('currency', 'bs')  # Default USD
+
+            if not amount:
+                return Response({'error': 'Debe proporcionar un monto.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            intent = stripe.PaymentIntent.create(
+                amount=amount,
+                currency=currency,
+                payment_method_types=["card"],
+            )
+
+            return Response({'client_secret': intent['client_secret']}, status=status.HTTP_200_OK) 
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 
 class DetalleVentaViewSet(viewsets.ModelViewSet):
