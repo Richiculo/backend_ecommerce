@@ -1,6 +1,7 @@
 from django.db import models
 from direcciones.models import Direccion
 #Modelo: Departamento
+
 class Departamento(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
 
@@ -9,6 +10,7 @@ class Departamento(models.Model):
 
 
 # Modelo: Sucursal
+    
 class Sucursal(models.Model):
     nombre = models.CharField(max_length=100)
     telefono = models.CharField(max_length=20)
