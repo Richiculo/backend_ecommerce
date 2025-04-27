@@ -11,5 +11,6 @@ router.register(r'stocks',views.StockSucursalViewSet)
 router.register(r'imagenes-productos',views.ImagenProductoViewSet, basename = 'imagenes-productos')
 
 urlpatterns = [
+    path('reporte-stock-pdf/', views.GenerarStockPDF.as_view(), name='reporte-stock-pdf'),
     path('', include(router.urls))
 ]
