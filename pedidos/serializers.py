@@ -1,12 +1,8 @@
 from rest_framework import serializers
 from .models import Cart, ItemCart, Metodo_Pago, Pago, Detalle_Venta, Venta
-<<<<<<< HEAD
 from productos.serializers import ProductoSerializer
 from productos.models import Producto
 
-=======
-from usuarios.serializers import UsuarioSerializer
->>>>>>> Bulacia
 
 class CartSerializer(serializers.ModelSerializer):
     class Meta:
