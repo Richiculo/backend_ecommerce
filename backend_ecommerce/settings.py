@@ -46,11 +46,8 @@ INSTALLED_APPS = [
     'productos',
     'pedidos',
     'direcciones',
-<<<<<<< HEAD
-=======
     'notificaciones',
     'envios',
->>>>>>> 712e0618677ae39fc65e8072182f0ad33a800792
 ]
 
 MIDDLEWARE = [
@@ -90,12 +87,8 @@ WSGI_APPLICATION = 'backend_ecommerce.wsgi.application'
 
 
 # CONEXION A LA BASE DE DATOS
-<<<<<<< HEAD
-""" DATABASES = {
-=======
 """
 DATABASES = {
->>>>>>> 712e0618677ae39fc65e8072182f0ad33a800792
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         "NAME": "bdparcialsi2",
@@ -104,14 +97,8 @@ DATABASES = {
         "HOST": "dpg-d00lvu49c44c73bbep80-a.virginia-postgres.render.com",
         "PORT": "5432"
     }
-<<<<<<< HEAD
-} """
-
-# CONEXION AL SERVICIO RDS DE AWS PRIMOOO
-=======
 }
 """
->>>>>>> 712e0618677ae39fc65e8072182f0ad33a800792
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -184,9 +171,5 @@ CORS_ALLOW_CREDENTIALS = True
 AUTH_USER_MODEL = 'usuarios.Usuario'
 
 MEDIA_URL = '/media/'
-<<<<<<< HEAD
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-=======
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
->>>>>>> 712e0618677ae39fc65e8072182f0ad33a800792
