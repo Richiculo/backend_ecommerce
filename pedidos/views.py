@@ -10,7 +10,7 @@ from rest_framework import serializers
 from rest_framework.decorators import action
 from .serializers import CartSerializer, ItemCartSerializer, MetodoPagoSerializer, PagoSerializer, DetalleVentaSerializer, VentaSerializer
 from productos.serializers import ProductoSerializer
-from ml.recomendador_knn import recomendar
+from pedidos.ml.recomendador_knn import recomendar
 
 
 
