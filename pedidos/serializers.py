@@ -34,6 +34,8 @@ class PagoSerializer(serializers.ModelSerializer):
 
 
 class DetalleVentaSerializer(serializers.ModelSerializer):
+    producto = ProductoSerializer(read_only = True)
+
     class Meta:
         model = Detalle_Venta
         fields = '__all__'

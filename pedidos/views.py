@@ -126,6 +126,7 @@ class PagoViewSet(viewsets.ModelViewSet):
                 metodo = Metodo_Pago.objects.get(id=metodo_id)
                 pago.metodo = metodo
             pago.referencia = referencia
+            pago.estado = 'completado'
             pago.save()
 
             venta = Venta.objects.get(pago=pago)
@@ -172,6 +173,15 @@ class DetalleVentaViewSet(viewsets.ModelViewSet):
     queryset = Detalle_Venta.objects.all()
     serializer_class = DetalleVentaSerializer
 
+    def get_queryset(self):
+        venta_id = self.request.query_params.get('venta_id')
+        qs = Detalle_Venta.objects.select_related('producto')  # <-- esto optimiza
+        if venta_id is not None:
+         qs = qs.filter(venta_id=venta_id)
+        return qs
+
+
+
 class VentaViewSet(viewsets.ModelViewSet):
     queryset = Venta.objects.all()
     serializer_class = VentaSerializer
@@ -181,10 +191,29 @@ class VentaViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
-            return Venta.objects.all()
-        return Venta.objects.filter(usuario=user)
+        queryset = Venta.objects.all()
+        if not user.is_staff:
+            return queryset.filter(usuario=user)
+        user_id = self.request.query_params.get('user_id')
+        if user_id:
+            queryset = queryset.filter(usuario__id=user_id)
 
+        return queryset
+    
+    @action(detail=False, methods=['get'], url_path='venta-pendiente')
+    def get_venta_pendiente(self, request):
+        user = request.user
+
+        # Filtrar las ventas pendientes y ordenar por fecha descendente (la más reciente primero)
+        venta_pendiente = Venta.objects.filter(usuario=user, estado='pendiente').order_by('-fecha').first()
+
+        if venta_pendiente:
+            # Si se encuentra una venta pendiente, serializamos la información
+            serializer = self.get_serializer(venta_pendiente)
+            return Response(serializer.data)
+        else:
+            return Response({"detail": "No hay ventas pendientes."}, status=status.HTTP_404_NOT_FOUND)
+        
     def create(self, request, *args, **kwargs):
         usuario = request.user
         sucursal_id = request.data.get('sucursal_id')
