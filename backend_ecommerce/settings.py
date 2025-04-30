@@ -160,6 +160,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://10.0.2.2:8000',
     'http://192.168.100.4:8000',
     "http://192.168.100.4",
+    "http://192.168.100.1:8000",
     "http://192.168.82.106",
     "http://192.168.82.106:8000"
 ]
@@ -174,5 +175,3 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-
