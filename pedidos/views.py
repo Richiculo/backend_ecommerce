@@ -13,6 +13,7 @@ from productos.serializers import ProductoSerializer
 from pedidos.ml.recomendador_knn import recomendar
 from backend_ecommerce import settings
 import stripe
+from envios.models import Envio
 
 
 #IMPORTS PARA REPORTES
@@ -306,7 +307,7 @@ class PagoViewSet(viewsets.ModelViewSet):
                 pass
             return Response({"mensaje": "Pago confirmado y procesando venta"}, status=status.HTTP_200_OK)
         except Exception as e:
-            Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
     @action(detail=False, methods=['POST'], url_path='crear-intencion-pago')
     def create_payment_intent(self, request):
@@ -314,7 +315,7 @@ class PagoViewSet(viewsets.ModelViewSet):
             stripe.api_key = settings.STRIPE_SECRET_KEY
 
             amount = request.data.get('amount')  # Monto en centavos
-            currency = request.data.get('currency', 'bs')  # Default USD
+            currency = request.data.get('currency', 'USD')  # Default USD
 
             if not amount:
                 return Response({'error': 'Debe proporcionar un monto.'}, status=status.HTTP_400_BAD_REQUEST)
