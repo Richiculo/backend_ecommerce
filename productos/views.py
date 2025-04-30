@@ -54,14 +54,14 @@ class DescuentoViewSet(viewsets.ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=True, methods=['POST'])
-    def activar(self, request, pk=None):
+    def activarsde(self, request, pk=None):
         descuento = self.get_object(pk)
         descuento.tiene_descuento = True
         descuento.save()
         return Response({"status": "descuento activado"})
     
     @action(detail=True, methods=['POST'])
-    def desactivar(self, request, pk=None):
+    def desactivardes(self, request, pk=None):
         descuento = self.get_object(pk)
         descuento.tiene_descuento = False
         descuento.save()
