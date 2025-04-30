@@ -406,8 +406,9 @@ class VentaViewSet(viewsets.ModelViewSet):
             metodo_id=request.data.get('metodo_pago_id'),
             monto=total,
             estado='pendiente',
-            referecia=request.data.get('referencia','')
+            referencia=request.data.get('referencia','')
         )
+
 
         venta = Venta.objects.create(
             usuario=usuario,
