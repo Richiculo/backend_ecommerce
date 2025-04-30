@@ -280,10 +280,73 @@ class PagoViewSet(viewsets.ModelViewSet):
     queryset = Pago.objects.all()
     serializer_class = PagoSerializer
 
+    @action(detail=True, methods=['POST'])
+    def confirmar_pago(self, request, pk=None):
+        try:
+            pago = self.get_object()
+            if pago.estado != 'pendiente':
+                return Response({"error": "Este pago ya fue procesado"}, status=status.HTTP_400_BAD_REQUEST)
+            metodo_id = request.data.get('metodo_id')
+            referencia = request.data.get('referencia', 'PagoSimulado')
+            if metodo_id:
+                metodo = Metodo_Pago.objects.get(id=metodo_id)
+                pago.metodo = metodo
+            pago.referencia = referencia
+            pago.estado = 'completado'
+            pago.save()
+
+            venta = Venta.objects.get(pago=pago)
+            venta.estado = 'procesando'
+            venta.save()
+
+            try:
+                envio = Envio.objects.get(venta=venta)
+                envio.estado = 'enviado'
+                envio.fecha_envio = timezone.now()
+                envio.observaciones = 'En camino'
+                envio.save()
+            except Envio.DoesNotExist:
+                pass
+            return Response({"mensaje": "Pago confirmado y procesando venta"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    @action(detail=False, methods=['POST'], url_path='crear-intencion-pago')
+    def create_payment_intent(self, request):
+        try:
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+
+            amount = request.data.get('amount')  # Monto en centavos
+            currency = request.data.get('currency', 'bs')  # Default USD
+
+            if not amount:
+                return Response({'error': 'Debe proporcionar un monto.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            intent = stripe.PaymentIntent.create(
+                amount=amount,
+                currency=currency,
+                payment_method_types=["card"],
+            )
+
+            return Response({'client_secret': intent['client_secret']}, status=status.HTTP_200_OK) 
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
 
 class DetalleVentaViewSet(viewsets.ModelViewSet):
     queryset = Detalle_Venta.objects.all()
     serializer_class = DetalleVentaSerializer
+
+    def get_queryset(self):
+        venta_id = self.request.query_params.get('venta_id')
+        qs = Detalle_Venta.objects.select_related('producto')  # <-- esto optimiza
+        if venta_id is not None:
+         qs = qs.filter(venta_id=venta_id)
+        return qs
+
+
 
 class VentaViewSet(viewsets.ModelViewSet):
     queryset = Venta.objects.all()
@@ -291,10 +354,29 @@ class VentaViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        """ if user.rol.nombre.lower() == 'cliente':
-            return Venta.objets.filter(usuario=user) """
-        return Venta.objects.all()
+        queryset = Venta.objects.all()
+        if not user.is_staff:
+            return queryset.filter(usuario=user)
+        user_id = self.request.query_params.get('user_id')
+        if user_id:
+            queryset = queryset.filter(usuario__id=user_id)
 
+        return queryset
+    
+    @action(detail=False, methods=['get'], url_path='venta-pendiente')
+    def get_venta_pendiente(self, request):
+        user = request.user
+
+        # Filtrar las ventas pendientes y ordenar por fecha descendente (la más reciente primero)
+        venta_pendiente = Venta.objects.filter(usuario=user, estado='pendiente').order_by('-fecha').first()
+
+        if venta_pendiente:
+            # Si se encuentra una venta pendiente, serializamos la información
+            serializer = self.get_serializer(venta_pendiente)
+            return Response(serializer.data)
+        else:
+            return Response({"detail": "No hay ventas pendientes."}, status=status.HTTP_404_NOT_FOUND)
+        
     def create(self, request, *args, **kwargs):
         usuario = request.user
         sucursal_id = request.data.get('sucursal_id')
