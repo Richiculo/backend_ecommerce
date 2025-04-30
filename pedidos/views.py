@@ -14,6 +14,9 @@ from pedidos.ml.recomendador_knn import recomendar
 from backend_ecommerce import settings
 import stripe
 from envios.models import Envio
+from direcciones.models import Direccion
+from django.utils import timezone
+
 
 
 
@@ -381,8 +384,18 @@ class VentaViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         usuario = request.user
         sucursal_id = request.data.get('sucursal_id')
+        es_delivery = request.data.get('es_delivery', False)
+        direccion_id = request.data.get('direccion_id')
         if not sucursal_id:
             return Response({'error': 'Debe indicar una sucursal para la venta.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if es_delivery:
+            if not direccion_id:
+                return Response({'error': 'Debe proporcionar una dirección para el envio.'}, status=status.HTTP_400_BAD_REQUEST)
+            try: 
+                direccion = Direccion.objects.get(id=direccion_id, usuario=usuario)
+            except Direccion.DoesNotExist:
+                return Response({'error': 'La dirección proporcionada no existe o no pertenece al usuario'})
 
         try:
             carrito = Cart.objects.get(usuario=usuario, estado='activo')
@@ -399,8 +412,9 @@ class VentaViewSet(viewsets.ModelViewSet):
             except ObjectDoesNotExist:
                 return Response({'error': f'El producto {item.producto.nombre} no está disponible en la sucursal seleccionada.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if item.cantidad > stock_sucursal.stock:
-            return Response({'error': f"No hay suficiente stock para el producto {item.producto.nombre} en la sucursal seleccionada."}, status=status.HTTP_400_BAD_REQUEST)
+            if item.cantidad > stock_sucursal.stock:
+                return Response({'error': f"No hay suficiente stock para el producto {item.producto.nombre} en la sucursal seleccionada."}, status=status.HTTP_400_BAD_REQUEST)
+
         
         total = sum(item.precio_unitario * item.cantidad for item in items)
 
@@ -410,7 +424,6 @@ class VentaViewSet(viewsets.ModelViewSet):
             estado='pendiente',
             referencia=request.data.get('referencia','')
         )
-
 
         venta = Venta.objects.create(
             usuario=usuario,
@@ -432,6 +445,17 @@ class VentaViewSet(viewsets.ModelViewSet):
         
         carrito.estado = 'confirmado'
         carrito.save()
+
+        if es_delivery:
+            direccion = Direccion.objects.get(id=direccion_id, usuario=usuario)
+            Envio.objects.create(
+                venta=venta,
+                cliente=usuario,
+                direccion_entrega=direccion,
+                estado='pendiente',
+                observaciones='Pedido en preparación'
+            )
+
         serializer = self.get_serializer(venta)
         return Response({'mensaje':'Venta registrada con éxito', 'venta': serializer.data}, status=status.HTTP_201_CREATED)
 
