@@ -17,5 +17,6 @@ class Sucursal(models.Model):
     direccion = models.OneToOneField(Direccion, on_delete=models.CASCADE, null=True, blank=True)
 
 
+
     def __str__(self):
         return self.nombre
