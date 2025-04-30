@@ -241,6 +241,8 @@ class ItemCartViewSet(viewsets.ModelViewSet):
         return ItemCart.objects.filter(cart__usuario=user)
 
     def perform_create(self, serializer):
+        
+
         user = self.request.user
         cart, _ = Cart.objects.get_or_create(usuario=user, estado='activo')
         
@@ -263,13 +265,7 @@ class ItemCartViewSet(viewsets.ModelViewSet):
             serializer.save()
 
 
-    queryset = Cart.objects.all()
-    serializer_class = CartSerializer
-
-
-class ItemCartViewSet(viewsets.ModelViewSet):
-    queryset = ItemCart.objects.all()
-    serializer_class = ItemCartSerializer
+    
 
 class MetodoPagoViewSet(viewsets.ModelViewSet):
     queryset = Metodo_Pago.objects.all()
