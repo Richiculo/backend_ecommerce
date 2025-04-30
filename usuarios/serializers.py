@@ -33,7 +33,6 @@ class UsuarioSerializer(serializers.ModelSerializer):
         }
 
 
-
     def create(self, validated_data):
         if 'password' in validated_data:
             validated_data['password'] = make_password(validated_data['password'])

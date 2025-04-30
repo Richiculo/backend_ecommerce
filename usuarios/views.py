@@ -61,6 +61,7 @@ def perfil(request):
     }
     return Response(payload, status=status.HTTP_200_OK)
 
+
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
