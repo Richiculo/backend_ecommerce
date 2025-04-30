@@ -266,17 +266,7 @@ class ItemCartViewSet(viewsets.ModelViewSet):
             serializer.save()
 
 
-<<<<<<< HEAD
     
-=======
-    queryset = Cart.objects.all()
-    serializer_class = CartSerializer
-
-
-class ItemCartViewSet(viewsets.ModelViewSet):
-    queryset = ItemCart.objects.all()
-    serializer_class = ItemCartSerializer
->>>>>>> 77d39679fa8a3ee6527a10fc9f527c6c056560c6
 
 class MetodoPagoViewSet(viewsets.ModelViewSet):
     queryset = Metodo_Pago.objects.all()
