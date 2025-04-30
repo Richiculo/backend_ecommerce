@@ -11,7 +11,8 @@ from rest_framework.decorators import action
 from .serializers import CartSerializer, ItemCartSerializer, MetodoPagoSerializer, PagoSerializer, DetalleVentaSerializer, VentaSerializer
 from productos.serializers import ProductoSerializer
 from pedidos.ml.recomendador_knn import recomendar
-
+from backend_ecommerce import settings
+import stripe
 
 
 #IMPORTS PARA REPORTES
@@ -265,17 +266,7 @@ class ItemCartViewSet(viewsets.ModelViewSet):
             serializer.save()
 
 
-<<<<<<< HEAD
     
-=======
-    queryset = Cart.objects.all()
-    serializer_class = CartSerializer
-
-
-class ItemCartViewSet(viewsets.ModelViewSet):
-    queryset = ItemCart.objects.all()
-    serializer_class = ItemCartSerializer
->>>>>>> 77d39679fa8a3ee6527a10fc9f527c6c056560c6
 
 class MetodoPagoViewSet(viewsets.ModelViewSet):
     queryset = Metodo_Pago.objects.all()
@@ -355,6 +346,8 @@ class DetalleVentaViewSet(viewsets.ModelViewSet):
 
 
 class VentaViewSet(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication]
+    permission_classes     = [IsAuthenticated]
     queryset = Venta.objects.all()
     serializer_class = VentaSerializer
 
@@ -436,11 +429,9 @@ class VentaViewSet(viewsets.ModelViewSet):
         
         carrito.estado = 'confirmado'
         carrito.save()
-
-    
-
         serializer = self.get_serializer(venta)
         return Response({'mensaje':'Venta registrada con éxito', 'venta': serializer.data}, status=status.HTTP_201_CREATED)
+
 
     def actualizar_estado_pago(pago, estado):
         if estado == 'completado':

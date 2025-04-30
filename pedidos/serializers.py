@@ -47,7 +47,4 @@ class VentaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Venta
         fields = ['id', 'fecha', 'total', 'estado', 'pago', 'nombre']  # Incluye 'nombre' y excluye 'usuario'
-class VentaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Venta
-        fields = '__all__'
+
