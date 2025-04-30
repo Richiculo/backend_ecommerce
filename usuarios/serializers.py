@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from .models import Usuario, ActivitylogUsuario, Rol
 from direcciones.serializers import DireccionSerializer
-
+from .models import Direccion
 
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,7 +22,10 @@ class ActivitylogUsuarioSerializer(serializers.ModelSerializer):
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
-    direccion = DireccionSerializer(required=False)  # Serializador anidado para la dirección
+    direccion = serializers.PrimaryKeyRelatedField(
+    queryset=Direccion.objects.all(), required=False, allow_null=True
+)
+
 
     activitylog = ActivitylogUsuarioSerializer(many=True, read_only=True)  # Serializador anidado para el log de actividad
     class Meta:
@@ -31,6 +34,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True, 'required': False},
         }
+
 
 
     def create(self, validated_data):
@@ -45,14 +49,28 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return value
     
     def update(self, instance, validated_data):
+    # Rol (si se manda)
         rol = validated_data.pop('rol', None)
         if rol:
             instance.rol = rol
-        
-        # Manejar la actualización de la contraseña si está presente
+
+    # Contraseña (si se manda)
         password = validated_data.pop('password', None)
         if password:
             instance.password = make_password(password)
-        
-        # Actualizar el resto de los campos
-        return super().update(instance, validated_data)
+
+    # Dirección (obtenida desde initial_data porque es direccion_id, no un objeto anidado)
+        direccion_id = self.initial_data.get('direccion_id')
+        if direccion_id:
+            try:
+                direccion = Direccion.objects.get(pk=direccion_id)
+                instance.direccion = direccion
+            except Direccion.DoesNotExist:
+                raise serializers.ValidationError({"direccion_id": "La dirección especificada no existe."})
+
+    # El resto de los campos
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance

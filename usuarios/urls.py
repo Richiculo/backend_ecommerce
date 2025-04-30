@@ -10,6 +10,6 @@ urlpatterns = [
     re_path('login', views.login),
     re_path('register', views.register),
     re_path('perfil', views.perfil),
-    # path('actualizar', views.actualizar_usuario),
+    path('actualizar', views.actualizar_usuario),
     path('', include(router.urls) ),   
 ]

@@ -10,6 +10,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from .models import Usuario, Rol
 from django.utils import timezone
+from .models import Direccion
+from rest_framework import serializers
 
 
 class UsuarioViewSet(viewsets.ModelViewSet):
@@ -61,6 +63,18 @@ def perfil(request):
     }
     return Response(payload, status=status.HTTP_200_OK)
 
+def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        direccion_data = self.initial_data.get('direccion_id')
+        if direccion_data:
+            try:
+                direccion = Direccion.objects.get(pk=direccion_data)
+                instance.direccion = direccion
+            except Direccion.DoesNotExist:
+                raise serializers.ValidationError({"direccion_id": "La dirección especificada no existe."})
+        if password:
+            instance.password = make_password(password)
+        return super().update(instance, validated_data)
 
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
