@@ -61,7 +61,7 @@ def perfil(request):
     }
     return Response(payload, status=status.HTTP_200_OK)
 
-""" @api_view(['PUT'])
+@api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def actualizar_usuario(request):
@@ -70,5 +70,5 @@ def actualizar_usuario(request):
     if serializer.is_valid():
         serializer.save()
         return Response({"message": "Usuario actualizado", "usuario": serializer.data})
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) """
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
 
