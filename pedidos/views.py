@@ -11,6 +11,9 @@ from rest_framework.decorators import action
 from .serializers import CartSerializer, ItemCartSerializer, MetodoPagoSerializer, PagoSerializer, DetalleVentaSerializer, VentaSerializer
 from productos.serializers import ProductoSerializer
 from pedidos.ml.recomendador_knn import recomendar
+from backend_ecommerce import settings
+import stripe
+from envios.models import Envio
 
 
 
@@ -305,7 +308,7 @@ class PagoViewSet(viewsets.ModelViewSet):
                 pass
             return Response({"mensaje": "Pago confirmado y procesando venta"}, status=status.HTTP_200_OK)
         except Exception as e:
-            Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
     @action(detail=False, methods=['POST'], url_path='crear-intencion-pago')
     def create_payment_intent(self, request):
@@ -313,7 +316,7 @@ class PagoViewSet(viewsets.ModelViewSet):
             stripe.api_key = settings.STRIPE_SECRET_KEY
 
             amount = request.data.get('amount')  # Monto en centavos
-            currency = request.data.get('currency', 'bs')  # Default USD
+            currency = request.data.get('currency', 'USD')  # Default USD
 
             if not amount:
                 return Response({'error': 'Debe proporcionar un monto.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -345,6 +348,8 @@ class DetalleVentaViewSet(viewsets.ModelViewSet):
 
 
 class VentaViewSet(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication]
+    permission_classes     = [IsAuthenticated]
     queryset = Venta.objects.all()
     serializer_class = VentaSerializer
 
@@ -403,8 +408,9 @@ class VentaViewSet(viewsets.ModelViewSet):
             metodo_id=request.data.get('metodo_pago_id'),
             monto=total,
             estado='pendiente',
-            referecia=request.data.get('referencia','')
+            referencia=request.data.get('referencia','')
         )
+
 
         venta = Venta.objects.create(
             usuario=usuario,
@@ -426,11 +432,9 @@ class VentaViewSet(viewsets.ModelViewSet):
         
         carrito.estado = 'confirmado'
         carrito.save()
-
-    
-
         serializer = self.get_serializer(venta)
         return Response({'mensaje':'Venta registrada con éxito', 'venta': serializer.data}, status=status.HTTP_201_CREATED)
+
 
     def actualizar_estado_pago(pago, estado):
         if estado == 'completado':
