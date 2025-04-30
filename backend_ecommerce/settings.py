@@ -159,7 +159,10 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:63116',
     'http://10.0.2.2:8000',
     'http://192.168.100.4:8000',
-    "http://192.168.100.3"
+    "http://192.168.100.4",
+    "http://192.168.100.1:8000",
+    "http://192.168.82.106",
+    "http://192.168.82.106:8000"
 ]
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost:\d+$",
@@ -172,4 +175,3 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
