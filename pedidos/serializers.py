@@ -41,6 +41,12 @@ class DetalleVentaSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+
+class VentaSerializer(serializers.ModelSerializer):
+    nombre = serializers.CharField(source='usuario.get_full_name', read_only=True)
+    class Meta:
+        model = Venta
+        fields = ['id', 'fecha', 'total', 'estado', 'pago', 'nombre']  # Incluye 'nombre' y excluye 'usuario'
 class VentaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Venta

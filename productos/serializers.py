@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import Producto, Categoria, Proveedor, Detalle_Producto, Categoria_Producto, Stock_sucursal, Imagen_Producto
+from sucursales.serializers import SucursalSerializer
+
 
 class ProveedorSerializer(serializers.ModelSerializer):
     categorias = serializers.ListField(
@@ -56,6 +58,12 @@ class ProductoSerializer(serializers.ModelSerializer):
             for cat in obj.categorias.all()
         ]
 
+
+class CategoriaProductoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Categoria_Producto
+        fields = '__all__'
+
 class DetalleProductoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Detalle_Producto
@@ -69,6 +77,44 @@ class ImagenProductoSerializer(serializers.ModelSerializer):
 
 
 class StockSucursalSerializer(serializers.ModelSerializer):
+    sucursal = serializers.CharField(source='sucursal.nombre', required=True)
+    producto = serializers.CharField(source='producto.nombre', required=True)
+    departamento = serializers.SerializerMethodField()  # Usar SerializerMethodField para obtener el departamento
+
     class Meta:
         model = Stock_sucursal
         fields = '__all__'
+
+    def get_departamento(self, obj):
+        # Verifica si la sucursal tiene una dirección asociada y si esa dirección tiene un departamento
+        if obj.sucursal and obj.sucursal.direccion and obj.sucursal.direccion.departamento:
+            return obj.sucursal.direccion.departamento.nombre
+        return None  # Devuelve None si no hay departamento asociado
+
+    def update(self, instance, validated_data):
+        # Actualizar la sucursal
+        sucursal_nombre = validated_data.pop('sucursal', {}).get('nombre', None)
+        if sucursal_nombre:
+            try:
+                from sucursales.models import Sucursal  # Importar el modelo Sucursal
+                sucursal = Sucursal.objects.get(nombre=instance.sucursal.nombre)  # Buscar la sucursal actual
+                sucursal.nombre = sucursal_nombre  # Actualizar el nombre de la sucursal
+                sucursal.save()  # Guardar los cambios
+                instance.sucursal = sucursal
+            except Sucursal.DoesNotExist:
+                raise serializers.ValidationError({"sucursal": "La sucursal especificada no existe."})
+
+        # Actualizar el producto
+        producto_nombre = validated_data.pop('producto', {}).get('nombre', None)
+        if producto_nombre:
+            try:
+                from productos.models import Producto  # Importar el modelo Producto
+                producto = Producto.objects.get(nombre=instance.producto.nombre)  # Buscar el producto actual
+                producto.nombre = producto_nombre  # Actualizar el nombre del producto
+                producto.save()  # Guardar los cambios
+                instance.producto = producto
+            except Producto.DoesNotExist:
+                raise serializers.ValidationError({"producto": "El producto especificado no existe."})
+
+        # Actualizar el resto de los campos
+        return super().update(instance, validated_data)

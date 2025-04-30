@@ -9,8 +9,9 @@ router.register(r'categorias',views.CategoriaViewSet)
 router.register(r'detalles',views.DetalleProductoViewSet)
 router.register(r'stocks',views.StockSucursalViewSet)
 router.register(r'imagenes-productos',views.ImagenProductoViewSet, basename = 'imagenes-productos')
-router.register(r'descuentos', views.DescuentoViewSet, basename='descuentosss')
 
 urlpatterns = [
+    path('reporte-stock-pdf/', views.GenerarStockPDF.as_view(), name='reporte-stock-pdf'),
+    path('reporte-stock-excel/', views.GenerarStockExcel.as_view(), name='reporte-stock-excel'),
     path('', include(router.urls))
 ]

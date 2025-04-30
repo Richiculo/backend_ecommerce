@@ -3,8 +3,6 @@ from django.dispatch import receiver
 from .models import Stock_sucursal
 from notificaciones.models import Notificacion
 from django.contrib.auth import get_user_model
-
-
 def actualizar_stock_total(producto):
     total = sum([s.stock for s in producto.stock_sucursal_set.all()])
     producto.stock_total = total
@@ -12,6 +10,8 @@ def actualizar_stock_total(producto):
 
 @receiver([post_save, post_delete], sender=Stock_sucursal)
 def actualizar_stock(sender, instance, **kwargs):
+
+
     actualizar_stock_total(instance.producto)
 
 Usuario = get_user_model()
